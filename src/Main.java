@@ -7,9 +7,13 @@ import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -40,8 +44,19 @@ public class Main extends Application {
 					case '0':
 						break;
 					case '1':
-						Node platform = createEntity(j*60, i*60, 60,60,Color.BROWN);
-						platforms.add(platform);
+						if(i > 0) {
+							String prevline = LevelData.LEVEL1[i - 1];
+							if(line.charAt(j) == '1' && prevline.charAt(j) == '1') {
+								Node platform = createPlatformBottom(j*60, i*60, 64,64);
+								platforms.add(platform);
+							} else {
+								Node platform = createPlatformTop(j*60, i*60, 64,64);
+								platforms.add(platform);
+							}
+						} else {
+							Node platform = createPlatformTop(j*60, i*60, 60,60);
+							platforms.add(platform);
+						}
 						break;
 					//add additional case for enemies/powerups etc
 				}
@@ -132,6 +147,32 @@ public class Main extends Application {
             playerVelocity = playerVelocity.add(0, -30); //since y-axis in JavaFX is opposite
             canJump = false; //no double jump
         }
+    }
+    
+    private Node createPlatformTop(int x, int y, int w, int h) {
+    	Rectangle platform = new Rectangle(w, h);
+    	platform.setTranslateX(x);
+    	platform.setTranslateY(y);
+    	Image img = new Image("assets/Sand.png");
+    	
+    	platform.setFill(new ImagePattern(img));
+    	
+    	gameRoot.getChildren().add(platform);
+		
+		return platform;
+    }
+    
+    private Node createPlatformBottom(int x, int y, int w, int h) {
+    	Rectangle platform = new Rectangle(w, h);
+    	platform.setTranslateX(x);
+    	platform.setTranslateY(y);
+    	Image img = new Image("assets/Sand-Below.png");
+    	
+    	platform.setFill(new ImagePattern(img));
+    	
+    	gameRoot.getChildren().add(platform);
+		
+		return platform;
     }
 
     private Node createEntity(int x, int y, int w, int h, Color color) { //we can make this return as image or class that extends node for graphics
