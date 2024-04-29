@@ -34,6 +34,10 @@ public class Main extends Application {
 
 	private void initContent(){
 		Rectangle bg = new Rectangle(1280, 720);
+		
+		Image bg_img = new Image("assets/Sky.png");
+    	
+    	bg.setFill(new ImagePattern(bg_img));
 
 		levelWidth = LevelData.LEVEL1[0].length() * 60;
 
