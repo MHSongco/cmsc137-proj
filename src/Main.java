@@ -47,10 +47,10 @@ public class Main extends Application {
 						if(i > 0) {
 							String prevline = LevelData.LEVEL1[i - 1];
 							if(line.charAt(j) == '1' && prevline.charAt(j) == '1') {
-								Node platform = createPlatformBottom(j*60, i*60, 64,64);
+								Node platform = createPlatformBottom(j*60, i*60, 60,60);
 								platforms.add(platform);
 							} else {
-								Node platform = createPlatformTop(j*60, i*60, 64,64);
+								Node platform = createPlatformTop(j*60, i*60, 60,60);
 								platforms.add(platform);
 							}
 						} else {
