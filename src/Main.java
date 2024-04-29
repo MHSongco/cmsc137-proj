@@ -167,7 +167,7 @@ public class Main extends Application {
 		};
 		timer.start();
 	}
-    //Test
+    //Test 2
     public static void main(String[] args) {
         launch(args);
     }
