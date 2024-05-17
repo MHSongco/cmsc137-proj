@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -6,9 +7,11 @@ import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -74,6 +77,13 @@ public class Main extends Application {
 		});
 
 		appRoot.getChildren().addAll(bg, gameRoot, uiRoot);
+		Button openChatButton = new Button("Open Chat");
+		
+		uiRoot.getChildren().add(openChatButton);
+		
+		ChatClient chatClient = new ChatClient();
+		
+		openChatButton.setOnAction(event -> chatClient.show());
 	}
 
 	private void update() {
@@ -198,6 +208,7 @@ public class Main extends Application {
 		scene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
 		scene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
 		primaryStage.setTitle("Bini Platformer");
+		
 		primaryStage.setScene(scene);
 		primaryStage.show();
 

@@ -1,5 +1,4 @@
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -7,14 +6,16 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
 
-public class ChatClient extends Application {
+public class ChatClient {
     private BufferedReader reader;
     private PrintWriter writer;
     private TextArea messageArea;
-
-    public void start(Stage stage) throws Exception {
-        initNetwork();
-
+    
+    private Stage stage;
+    
+    public ChatClient() {
+    	stage = new Stage();
+    	
         BorderPane pane = new BorderPane();
         messageArea = new TextArea();
         messageArea.setEditable(false);
@@ -26,10 +27,19 @@ public class ChatClient extends Application {
         });
         pane.setCenter(messageArea);
         pane.setBottom(inputField);
-
+        
         Scene scene = new Scene(pane, 400, 300);
         stage.setScene(scene);
         stage.setTitle("Chat Client");
+        try {
+			initNetwork();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+
+    public void show(){
         stage.show();
     }
 
@@ -53,7 +63,7 @@ public class ChatClient extends Application {
         readerThread.start();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    // public static void main(String[] args) {
+    //     launch(args);
+    //}
 }
