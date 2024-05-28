@@ -44,6 +44,8 @@ public class Main extends Application {
     private PrintWriter out;
     private ExecutorService executor = Executors.newFixedThreadPool(1);
 
+    private int clientId = -1;  // Initialize to an invalid ID
+
 	private void initContent(){
 		Rectangle bg = new Rectangle(1280, 720);
 
@@ -123,6 +125,7 @@ public class Main extends Application {
 
     private void updateOtherPlayer(int playerId, int x, int y) {
         Node otherPlayer = otherPlayers.get(playerId);
+        //System.out.println(otherPlayer);
         if (otherPlayer == null) {
             otherPlayer = createEntity(x, y, 40, 40, Color.RED);
             otherPlayers.put(playerId, otherPlayer);
@@ -140,7 +143,7 @@ public class Main extends Application {
         }
     }
 
-	private void connectToServer() {
+    private void connectToServer() {
         try {
             socket = new Socket("localhost", 58901);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -150,13 +153,17 @@ public class Main extends Application {
                 try {
                     while (true) {
                         String line = in.readLine();
-                        if (line.startsWith("PLAYER")) {
+                        if (line.startsWith("YOURID")) {
+                            clientId = Integer.parseInt(line.split(" ")[1]);
+                        } else if (line.startsWith("PLAYER")) {
                             String[] tokens = line.split(" ");
                             int playerId = Integer.parseInt(tokens[1]);
-                            String[] pos = tokens[2].split(",");
-                            int x = Integer.parseInt(pos[0]);
-                            int y = Integer.parseInt(pos[1]);
-                            Platform.runLater(() -> updateOtherPlayer(playerId, x, y));
+                            if (playerId != clientId) {  // Check if the update is not for the current player
+                                String[] pos = tokens[2].split(",");
+                                int x = Integer.parseInt(pos[0]);
+                                int y = Integer.parseInt(pos[1]);
+                                Platform.runLater(() -> updateOtherPlayer(playerId, x, y));
+                            }
                         }
                     }
                 } catch (IOException e) {

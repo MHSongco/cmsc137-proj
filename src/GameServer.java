@@ -35,13 +35,12 @@ public class GameServer {
                     new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
+                // Inform the client of its ID
+                out.println("YOURID " + clientNumber);
                 writers.put(clientNumber, out);
 
-                while (true) {
-                    String input = in.readLine();
-                    if (input == null) {
-                        return;
-                    }
+                String input;
+                while ((input = in.readLine()) != null) {
                     positions.put(clientNumber, input);
                     for (PrintWriter writer : writers.values()) {
                         writer.println("PLAYER " + clientNumber + " " + input);
