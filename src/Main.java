@@ -1,26 +1,33 @@
+import java.io.IOException;
+import java.io.*;
+import java.net.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-	private HashMap<KeyCode, Boolean> keys = new HashMap<KeyCode, Boolean>();
+	private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
-	private ArrayList<Node> platforms = new ArrayList<Node>();
+	private ArrayList<Node> platforms = new ArrayList<>();
+    private HashMap<Integer, Node> otherPlayers = new HashMap<>();
 
 	private Pane appRoot = new Pane();
 	private Pane gameRoot = new Pane();
@@ -32,8 +39,17 @@ public class Main extends Application {
 
 	private int levelWidth;
 
+	private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
+    private ExecutorService executor = Executors.newFixedThreadPool(1);
+
 	private void initContent(){
 		Rectangle bg = new Rectangle(1280, 720);
+
+		Image bg_img = new Image("assets/Sky.png");
+
+    	bg.setFill(new ImagePattern(bg_img));
 
 		levelWidth = LevelData.LEVEL1[0].length() * 60;
 
@@ -47,10 +63,10 @@ public class Main extends Application {
 						if(i > 0) {
 							String prevline = LevelData.LEVEL1[i - 1];
 							if(line.charAt(j) == '1' && prevline.charAt(j) == '1') {
-								Node platform = createPlatformBottom(j*60, i*60, 64,64);
+								Node platform = createPlatformBottom(j*60, i*60, 60,60);
 								platforms.add(platform);
 							} else {
-								Node platform = createPlatformTop(j*60, i*60, 64,64);
+								Node platform = createPlatformTop(j*60, i*60, 60,60);
 								platforms.add(platform);
 							}
 						} else {
@@ -73,6 +89,14 @@ public class Main extends Application {
 		});
 
 		appRoot.getChildren().addAll(bg, gameRoot, uiRoot);
+		Button openChatButton = new Button("Open Chat");
+
+		uiRoot.getChildren().add(openChatButton);
+
+		ChatClient chatClient = new ChatClient();
+
+		openChatButton.setOnAction(event -> chatClient.show());
+		connectToServer();
 	}
 
 	private void update() {
@@ -94,6 +118,54 @@ public class Main extends Application {
         }
 
         movePlayerY((int)playerVelocity.getY());
+        updatePlayerPositionOnServer();
+    }
+
+    private void updateOtherPlayer(int playerId, int x, int y) {
+        Node otherPlayer = otherPlayers.get(playerId);
+        if (otherPlayer == null) {
+            otherPlayer = createEntity(x, y, 40, 40, Color.RED);
+            otherPlayers.put(playerId, otherPlayer);
+        } else {
+            otherPlayer.setTranslateX(x);
+            otherPlayer.setTranslateY(y);
+        }
+    }
+
+    private void updatePlayerPositionOnServer() {
+        if (player != null) {
+            int x = (int) player.getTranslateX();
+            int y = (int) player.getTranslateY();
+            out.println(x + "," + y);
+        }
+    }
+
+	private void connectToServer() {
+        try {
+            socket = new Socket("localhost", 58901);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+
+            executor.submit(() -> {
+                try {
+                    while (true) {
+                        String line = in.readLine();
+                        if (line.startsWith("PLAYER")) {
+                            String[] tokens = line.split(" ");
+                            int playerId = Integer.parseInt(tokens[1]);
+                            String[] pos = tokens[2].split(",");
+                            int x = Integer.parseInt(pos[0]);
+                            int y = Integer.parseInt(pos[1]);
+                            Platform.runLater(() -> updateOtherPlayer(playerId, x, y));
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 	private void movePlayerX(int value) {
@@ -148,30 +220,30 @@ public class Main extends Application {
             canJump = false; //no double jump
         }
     }
-    
+
     private Node createPlatformTop(int x, int y, int w, int h) {
     	Rectangle platform = new Rectangle(w, h);
     	platform.setTranslateX(x);
     	platform.setTranslateY(y);
     	Image img = new Image("assets/Sand.png");
-    	
+
     	platform.setFill(new ImagePattern(img));
-    	
+
     	gameRoot.getChildren().add(platform);
-		
+
 		return platform;
     }
-    
+
     private Node createPlatformBottom(int x, int y, int w, int h) {
     	Rectangle platform = new Rectangle(w, h);
     	platform.setTranslateX(x);
     	platform.setTranslateY(y);
     	Image img = new Image("assets/Sand-Below.png");
-    	
+
     	platform.setFill(new ImagePattern(img));
-    	
+
     	gameRoot.getChildren().add(platform);
-		
+
 		return platform;
     }
 
@@ -197,6 +269,7 @@ public class Main extends Application {
 		scene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
 		scene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
 		primaryStage.setTitle("Bini Platformer");
+
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
