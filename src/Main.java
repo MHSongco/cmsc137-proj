@@ -1,15 +1,19 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -30,6 +34,10 @@ public class Main extends Application {
 
 	private void initContent(){
 		Rectangle bg = new Rectangle(1280, 720);
+		
+		Image bg_img = new Image("assets/Sky.png");
+    	
+    	bg.setFill(new ImagePattern(bg_img));
 
 		levelWidth = LevelData.LEVEL1[0].length() * 60;
 
@@ -40,8 +48,19 @@ public class Main extends Application {
 					case '0':
 						break;
 					case '1':
-						Node platform = createEntity(j*60, i*60, 60,60,Color.BROWN);
-						platforms.add(platform);
+						if(i > 0) {
+							String prevline = LevelData.LEVEL1[i - 1];
+							if(line.charAt(j) == '1' && prevline.charAt(j) == '1') {
+								Node platform = createPlatformBottom(j*60, i*60, 60,60);
+								platforms.add(platform);
+							} else {
+								Node platform = createPlatformTop(j*60, i*60, 60,60);
+								platforms.add(platform);
+							}
+						} else {
+							Node platform = createPlatformTop(j*60, i*60, 60,60);
+							platforms.add(platform);
+						}
 						break;
 					//add additional case for enemies/powerups etc
 				}
@@ -58,6 +77,13 @@ public class Main extends Application {
 		});
 
 		appRoot.getChildren().addAll(bg, gameRoot, uiRoot);
+		Button openChatButton = new Button("Open Chat");
+		
+		uiRoot.getChildren().add(openChatButton);
+		
+		ChatClient chatClient = new ChatClient();
+		
+		openChatButton.setOnAction(event -> chatClient.show());
 	}
 
 	private void update() {
@@ -133,6 +159,32 @@ public class Main extends Application {
             canJump = false; //no double jump
         }
     }
+    
+    private Node createPlatformTop(int x, int y, int w, int h) {
+    	Rectangle platform = new Rectangle(w, h);
+    	platform.setTranslateX(x);
+    	platform.setTranslateY(y);
+    	Image img = new Image("assets/Sand.png");
+    	
+    	platform.setFill(new ImagePattern(img));
+    	
+    	gameRoot.getChildren().add(platform);
+		
+		return platform;
+    }
+    
+    private Node createPlatformBottom(int x, int y, int w, int h) {
+    	Rectangle platform = new Rectangle(w, h);
+    	platform.setTranslateX(x);
+    	platform.setTranslateY(y);
+    	Image img = new Image("assets/Sand-Below.png");
+    	
+    	platform.setFill(new ImagePattern(img));
+    	
+    	gameRoot.getChildren().add(platform);
+		
+		return platform;
+    }
 
     private Node createEntity(int x, int y, int w, int h, Color color) { //we can make this return as image or class that extends node for graphics
         Rectangle entity = new Rectangle(w, h);
@@ -156,6 +208,7 @@ public class Main extends Application {
 		scene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
 		scene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
 		primaryStage.setTitle("Bini Platformer");
+		
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
