@@ -8,9 +8,13 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import javafx.animation.AnimationTimer;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -21,7 +25,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class Main extends Application {
 	private HashMap<KeyCode, Boolean> keys = new HashMap<>();
@@ -118,6 +126,7 @@ public class Main extends Application {
         }
 
         movePlayerY((int)playerVelocity.getY());
+        
         updatePlayerPositionOnServer();
     }
 
@@ -277,6 +286,35 @@ public class Main extends Application {
 			@Override
 			public void handle(long now){
 				update();
+				
+				if (player.getTranslateY() > primaryStage.getHeight()) {
+					this.stop();
+		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
+		    		transition.play();
+
+		    		transition.setOnFinished(new EventHandler<ActionEvent>() {
+
+		    			public void handle(ActionEvent arg0) {
+		    				Text gameOverText = new Text("Game Over");
+		    	            gameOverText.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+
+		    	            Button restartButton = new Button("Restart Game");
+		    	            restartButton.setOnAction(e -> {
+		    	                primaryStage.close();
+		    	            });
+
+		    	            // Adding components to layout
+		    	            VBox layout = new VBox(20);
+		    	            layout.setAlignment(Pos.CENTER);
+		    	            layout.getChildren().addAll(gameOverText, restartButton);
+
+		    	            // Creating scene
+		    	            Scene scene = new Scene(layout, 1280, 720);
+		    	            
+		    	        	primaryStage.setScene(scene);
+		    			}
+		    		});
+		        }
 			}
 		};
 		timer.start();
