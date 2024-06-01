@@ -1,3 +1,5 @@
+package main;
+
 import java.io.IOException;
 import java.io.*;
 import java.net.*;
@@ -128,7 +130,7 @@ public class Main extends Application {
         }
 
         movePlayerY((int)playerVelocity.getY());
-        
+
         updatePlayerPositionOnServer();
     }
 
@@ -145,7 +147,7 @@ public class Main extends Application {
     }
 
     private void updatePlayerPositionOnServer() {
-        if (player != null) {
+        if (out != null && player != null) { // Check if out and player are not null
             int x = (int) player.getTranslateX();
             int y = (int) player.getTranslateY();
             out.println(x + "," + y);
@@ -293,7 +295,7 @@ public class Main extends Application {
 			@Override
 			public void handle(long now){
 				update();
-				
+
 				if (player.getTranslateY() > primaryStage.getHeight()) {
 					this.stop();
 		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
@@ -317,7 +319,7 @@ public class Main extends Application {
 
 		    	            // Creating scene
 		    	            Scene scene = new Scene(layout, 1280, 720);
-		    	            
+
 		    	        	primaryStage.setScene(scene);
 		    			}
 		    		});

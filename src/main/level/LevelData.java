@@ -1,3 +1,5 @@
+package main;
+
 public class LevelData {
 
     public static final String[] LEVEL1 = new String[] {
