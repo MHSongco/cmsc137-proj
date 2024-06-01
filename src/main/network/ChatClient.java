@@ -1,4 +1,4 @@
-package main;
+package main.network;
 
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -63,8 +63,4 @@ public class ChatClient {
         });
         readerThread.start();
     }
-
-    // public static void main(String[] args) {
-    //     launch(args);
-    //}
 }

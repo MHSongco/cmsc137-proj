@@ -1,4 +1,4 @@
-package main;
+package main.level;
 
 public class LevelData {
 

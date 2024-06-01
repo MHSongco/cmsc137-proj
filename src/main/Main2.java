@@ -32,8 +32,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import main.level.LevelData;
+import main.network.ChatClient;
 
-public class Main extends Application {
+public class Main2 extends Application {
 	private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
 	private ArrayList<Node> platforms = new ArrayList<>();
@@ -130,6 +132,7 @@ public class Main extends Application {
         }
 
         movePlayerY((int)playerVelocity.getY());
+
 
         updatePlayerPositionOnServer();
     }
