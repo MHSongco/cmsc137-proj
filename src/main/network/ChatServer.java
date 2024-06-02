@@ -9,7 +9,7 @@ public class ChatServer {
     private static List<PrintWriter> clients = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Server is running...");
+        System.out.println("Chat Server is running...");
         ServerSocket listener = new ServerSocket(PORT);
 
         try {

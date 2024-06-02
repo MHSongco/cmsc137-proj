@@ -11,12 +11,12 @@ public class ChatClient {
     private BufferedReader reader;
     private PrintWriter writer;
     private TextArea messageArea;
-    
+
     private Stage stage;
-    
-    public ChatClient() {
+
+    public ChatClient(String chatAddress) {
     	stage = new Stage();
-    	
+
         BorderPane pane = new BorderPane();
         messageArea = new TextArea();
         messageArea.setEditable(false);
@@ -28,12 +28,12 @@ public class ChatClient {
         });
         pane.setCenter(messageArea);
         pane.setBottom(inputField);
-        
+
         Scene scene = new Scene(pane, 400, 300);
         stage.setScene(scene);
         stage.setTitle("Chat Client");
         try {
-			initNetwork();
+			initNetwork(chatAddress);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -44,8 +44,8 @@ public class ChatClient {
         stage.show();
     }
 
-    private void initNetwork() throws IOException {
-        Socket socket = new Socket("localhost", 12345);
+    private void initNetwork(String chatAddress) throws IOException {
+        Socket socket = new Socket(chatAddress, 12345);
         InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
         reader = new BufferedReader(streamReader);
         writer = new PrintWriter(socket.getOutputStream(), true);

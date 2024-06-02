@@ -20,10 +20,11 @@ import javafx.geometry.Insets;
 
 import main.Main;
 import main.network.GameServer;
+import main.network.ChatServer;
 
 public class MainMenuScene {
     private final Scene mainMenuScene;
-    
+
     public MainMenuScene(Stage primaryStage) {
         StackPane mainMenuLayout = new StackPane();
         Rectangle bg = new Rectangle(1280, 720);
@@ -48,22 +49,25 @@ public class MainMenuScene {
     public Scene getScene() {
         return mainMenuScene;
     }
-    
-    private void runServer() {
-    		showAlert(AlertType.INFORMATION, "Server Status", "Server started.");
-            new Thread(() -> {
-                try {
-                    // Start the server in a separate thread
-                    GameServer.main(null);
 
-                    // Restart the application on the JavaFX Application Thread
-                   } catch (Exception e) {
-                       e.printStackTrace();
-                   }
-               }).start();
-    	 
+    private void runServer() {
+    	  showAlert(AlertType.INFORMATION, "Server Status", "Server starting.");
+    	  new Thread(() -> {
+    	    try {
+    	      ChatServer.main(null);
+    	    } catch (Exception e) {
+    	      e.printStackTrace();
+    	    }
+    	  }).start();
+    	  new Thread(() -> {
+    	    try {
+    	      GameServer.main(null);
+    	    } catch (Exception e) {
+    	      e.printStackTrace();
+    	    }
+    	  }).start();
     	}
-    
+
     private void connectToServer() {
     	TextInputDialog addressDialog = new TextInputDialog("localhost");
         addressDialog.setTitle("Server Address");
@@ -71,13 +75,13 @@ public class MainMenuScene {
         addressDialog.setContentText("Address:");
 
         Optional<String> addressResult = addressDialog.showAndWait();
-        
+
         if (addressResult.isPresent()) {
         	Main.connectToServer(addressResult.get());
         }
-        
+
     }
-    
+
     private static void showAlert(AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

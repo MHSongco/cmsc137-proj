@@ -50,7 +50,7 @@ public class Gameplay {
 	private Node player; //make this another class that extends Node if we are to add graphics
 	private Point2D playerVelocity = new Point2D(0, 0);
 	private boolean canJump = true;
-	
+
 	private AnimationTimer timer;
 
 	private int levelWidth;
@@ -62,7 +62,7 @@ public class Gameplay {
 
     private int clientId = -1;  // Initialize to an invalid ID
 
-	
+	protected String chatAddress = "localhost";
 
 	public Gameplay(Stage primaryStage){
 		appRoot = new Pane();
@@ -118,12 +118,12 @@ public class Gameplay {
 
 		uiRoot.getChildren().add(openChatButton);
 
-		ChatClient chatClient = new ChatClient();
+		//ChatClient chatClient = new ChatClient(chatAddress);
 
-		openChatButton.setOnAction(event -> chatClient.show());
+		openChatButton.setOnAction(event -> commenceChat());
 
 		this.gameplayScene = new Scene(appRoot, 1280, 720);
-		
+
 		gameplayScene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
 		gameplayScene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
 
@@ -153,7 +153,16 @@ public class Gameplay {
 	public Scene getScene() {
         return gameplayScene;
     }
-	
+
+	public void setChatAddress(String serverAdd){ //chat address setter
+		chatAddress = serverAdd;
+	}
+
+	private void commenceChat(){
+		ChatClient chatClient = new ChatClient(chatAddress);
+		chatClient.show();
+	}
+
 	private void update() {
         if (isPressed(KeyCode.W) && player.getTranslateY() >= 5) {
             jumpPlayer();
@@ -332,7 +341,7 @@ public class Gameplay {
 
 		return platform;
     }
-    
+
     private Node createSalamin(int x, int y, int w, int h) {
     	Rectangle platform = new Rectangle(w, h);
     	platform.setTranslateX(x);
