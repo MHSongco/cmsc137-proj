@@ -42,6 +42,7 @@ public class Gameplay {
 
 	private ArrayList<Node> platforms = new ArrayList<>();
     private HashMap<Integer, Node> otherPlayers = new HashMap<>();
+    private HashMap<Integer, Node> enemies = new HashMap<>();
 
 	private Pane appRoot;
 	private Pane gameRoot;
@@ -62,7 +63,7 @@ public class Gameplay {
 
     private int clientId = -1;  // Initialize to an invalid ID
 
-	protected String chatAddress = "localhost";
+	protected String chatAddress = "localhost"; //default chat address
 
 	public Gameplay(Stage primaryStage){
 		appRoot = new Pane();
@@ -145,6 +146,22 @@ public class Gameplay {
 		    			}
 		    		});
 		        }
+                //hit enemy
+                for (Node enemy : enemies.values()) {
+                    if (player.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
+                        this.stop();
+                        PauseTransition transition = new PauseTransition(Duration.seconds(1));
+                        transition.play();
+
+                        transition.setOnFinished(new EventHandler<ActionEvent>() {
+
+                            public void handle(ActionEvent arg0) {
+
+                                primaryStage.setScene(Main.getGameOverScene());
+                            }
+                        });
+                    }
+                }
 			}
 		};
 		this.timer.start();
@@ -199,6 +216,17 @@ public class Gameplay {
         }
     }
 
+    private void updateEnemy(int enemyId, int x, int y) {
+        Node enemy = enemies.get(enemyId);
+        if (enemy == null) {
+            enemy = createEntity(x, y, 40, 40, Color.BLACK);
+            enemies.put(enemyId, enemy);
+        } else {
+            enemy.setTranslateX(x);
+            enemy.setTranslateY(y);
+        }
+    }
+
     private void updatePlayerPositionOnServer() {
         if (out != null && player != null) { // Check if out and player are not null
             int x = (int) player.getTranslateX();
@@ -228,6 +256,13 @@ public class Gameplay {
                                 int y = Integer.parseInt(pos[1]);
                                 Platform.runLater(() -> updateOtherPlayer(playerId, x, y));
                             }
+                        } else if (line.startsWith("ENEMY")) {
+                            String[] tokens = line.split(" ");
+                            int enemyId = Integer.parseInt(tokens[1]);
+                            String[] pos = tokens[2].split(",");
+                            int x = Integer.parseInt(pos[0]);
+                            int y = Integer.parseInt(pos[1]);
+                            Platform.runLater(() -> updateEnemy(enemyId, x, y));
                         }
                     }
                 } catch (IOException e) {
