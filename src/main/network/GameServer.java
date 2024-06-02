@@ -84,6 +84,10 @@ public class GameServer {
         }
     }
 
+    public static int getConnectedPlayerCount() {
+        return positions.size();
+    }
+
     private static void moveEnemies() {
         Random rand = new Random();
         for (Map.Entry<Integer, String> entry : enemyPositions.entrySet()) {

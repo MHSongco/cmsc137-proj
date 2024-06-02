@@ -16,10 +16,10 @@ public class GameOverScene {
     public GameOverScene(Stage primaryStage) {
         StackPane mainMenuLayout = new StackPane();
         Rectangle bg = new Rectangle(1280, 720);
-        Image bg_img = new Image("assets/BINI.png");
+        Image bg_img = new Image("assets/go.png");
         bg.setFill(new ImagePattern(bg_img));
 
-        Button buttonReturn = new Button("RETURN TO MAIN MENu");
+        Button buttonReturn = new Button("RETURN TO MAIN MENU");
         buttonReturn.setOnAction(event -> primaryStage.setScene(Main.getMainMenuScene()));
 
         mainMenuLayout.getChildren().addAll(bg, buttonReturn);
