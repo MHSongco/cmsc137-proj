@@ -34,20 +34,24 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import main.level.LevelData;
 import main.network.ChatClient;
+import main.scene.GameOverScene;
 
-public class Main2 extends Application {
+public class Gameplay {
+	private Scene gameplayScene;
 	private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
 	private ArrayList<Node> platforms = new ArrayList<>();
     private HashMap<Integer, Node> otherPlayers = new HashMap<>();
 
-	private Pane appRoot = new Pane();
-	private Pane gameRoot = new Pane();
-	private Pane uiRoot = new Pane();
+	private Pane appRoot;
+	private Pane gameRoot;
+	private Pane uiRoot;
 
 	private Node player; //make this another class that extends Node if we are to add graphics
 	private Point2D playerVelocity = new Point2D(0, 0);
 	private boolean canJump = true;
+	
+	private AnimationTimer timer;
 
 	private int levelWidth;
 
@@ -58,7 +62,12 @@ public class Main2 extends Application {
 
     private int clientId = -1;  // Initialize to an invalid ID
 
-	private void initContent(){
+	
+
+	public Gameplay(Stage primaryStage){
+		appRoot = new Pane();
+		gameRoot = new Pane();
+		uiRoot = new Pane();
 		Rectangle bg = new Rectangle(1280, 720);
 
 		Image bg_img = new Image("assets/Sky.png");
@@ -88,7 +97,9 @@ public class Main2 extends Application {
 							platforms.add(platform);
 						}
 						break;
-					//add additional case for enemies/powerups etc
+					case '3':
+						Node platform = createSalamin(j*60, i*60, 60,60);
+						platforms.add(platform);
 				}
 			}
 		}
@@ -110,9 +121,39 @@ public class Main2 extends Application {
 		ChatClient chatClient = new ChatClient();
 
 		openChatButton.setOnAction(event -> chatClient.show());
-		connectToServer();
+
+		this.gameplayScene = new Scene(appRoot, 1280, 720);
+		
+		gameplayScene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
+		gameplayScene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
+
+		this.timer = new AnimationTimer() {
+			@Override
+			public void handle(long now){
+				update();
+
+				if (player.getTranslateY() > primaryStage.getHeight()) {
+					this.stop();
+		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
+		    		transition.play();
+
+		    		transition.setOnFinished(new EventHandler<ActionEvent>() {
+
+		    			public void handle(ActionEvent arg0) {
+
+		    	            primaryStage.setScene(Main.getGameOverScene());
+		    			}
+		    		});
+		        }
+			}
+		};
+		this.timer.start();
 	}
 
+	public Scene getScene() {
+        return gameplayScene;
+    }
+	
 	private void update() {
         if (isPressed(KeyCode.W) && player.getTranslateY() >= 5) {
             jumpPlayer();
@@ -157,9 +198,9 @@ public class Main2 extends Application {
         }
     }
 
-    private void connectToServer() {
+    public void connectToServer(String address) {
         try {
-            socket = new Socket("localhost", 58901);
+            socket = new Socket(address, 58901);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -194,7 +235,7 @@ public class Main2 extends Application {
 
         for (int i = 0; i < Math.abs(value); i++) {
             for (Node platform : platforms) {
-                if (player.getBoundsInParent().intersects(platform.getBoundsInParent())) {
+                if (player.getBoundsInParent().intersects(platform.getBoundsInParent()) && platform.getUserData() != "WIN") {
                     if (movingRight) {
                         if (player.getTranslateX() + 40 == platform.getTranslateX()) {
                             return;
@@ -205,6 +246,18 @@ public class Main2 extends Application {
                             return;
                         }
                     }
+                } else if (player.getBoundsInParent().intersects(platform.getBoundsInParent()) && platform.getUserData() == "WIN") {
+                	timer.stop();
+		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
+		    		transition.play();
+
+		    		transition.setOnFinished(new EventHandler<ActionEvent>() {
+
+		    			public void handle(ActionEvent arg0) {
+
+		    	            Main.getPrimaryStage().setScene(Main.getGameOverScene());
+		    			}
+		    		});
                 }
             }
             player.setTranslateX(player.getTranslateX() + (movingRight ? 1 : -1)); //if no collision (we move one unit at a time)
@@ -216,7 +269,7 @@ public class Main2 extends Application {
 
         for (int i = 0; i < Math.abs(value); i++) {
             for (Node platform : platforms) {
-                if (player.getBoundsInParent().intersects(platform.getBoundsInParent())) {
+                if (player.getBoundsInParent().intersects(platform.getBoundsInParent()) && platform.getUserData() != "WIN") {
                     if (movingDown) {
                         if (player.getTranslateY() + 40 == platform.getTranslateY()) {
                             player.setTranslateY(player.getTranslateY() - 1);
@@ -229,6 +282,18 @@ public class Main2 extends Application {
                             return;
                         }
                     }
+                } else if (player.getBoundsInParent().intersects(platform.getBoundsInParent()) && platform.getUserData() == "WIN") {
+                	timer.stop();
+		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
+		    		transition.play();
+
+		    		transition.setOnFinished(new EventHandler<ActionEvent>() {
+
+		    			public void handle(ActionEvent arg0) {
+
+		    	            Main.getPrimaryStage().setScene(Main.getGameOverScene());
+		    			}
+		    		});
                 }
             }
             player.setTranslateY(player.getTranslateY() + (movingDown ? 1 : -1)); //if no collision
@@ -267,6 +332,20 @@ public class Main2 extends Application {
 
 		return platform;
     }
+    
+    private Node createSalamin(int x, int y, int w, int h) {
+    	Rectangle platform = new Rectangle(w, h);
+    	platform.setTranslateX(x);
+    	platform.setTranslateY(y);
+    	platform.setUserData("WIN");
+    	Image img = new Image("assets/Salamin.png");
+
+    	platform.setFill(new ImagePattern(img));
+
+    	gameRoot.getChildren().add(platform);
+
+		return platform;
+    }
 
     private Node createEntity(int x, int y, int w, int h, Color color) { //we can make this return as image or class that extends node for graphics
         Rectangle entity = new Rectangle(w, h);
@@ -281,58 +360,5 @@ public class Main2 extends Application {
 
     private boolean isPressed(KeyCode key) {
         return keys.getOrDefault(key, false);
-    }
-
-	public void start(Stage primaryStage) throws Exception{
-		initContent();
-
-		Scene scene = new Scene(appRoot);
-		scene.setOnKeyPressed(event -> keys.put(event.getCode(), true));
-		scene.setOnKeyReleased(event -> keys.put(event.getCode(), false));
-		primaryStage.setTitle("Bini Platformer");
-
-		primaryStage.setScene(scene);
-		primaryStage.show();
-
-		AnimationTimer timer = new AnimationTimer() {
-			@Override
-			public void handle(long now){
-				update();
-
-				if (player.getTranslateY() > primaryStage.getHeight()) {
-					this.stop();
-		        	PauseTransition transition = new PauseTransition(Duration.seconds(1));
-		    		transition.play();
-
-		    		transition.setOnFinished(new EventHandler<ActionEvent>() {
-
-		    			public void handle(ActionEvent arg0) {
-		    				Text gameOverText = new Text("Game Over");
-		    	            gameOverText.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-
-		    	            Button restartButton = new Button("Restart Game");
-		    	            restartButton.setOnAction(e -> {
-		    	                primaryStage.close();
-		    	            });
-
-		    	            // Adding components to layout
-		    	            VBox layout = new VBox(20);
-		    	            layout.setAlignment(Pos.CENTER);
-		    	            layout.getChildren().addAll(gameOverText, restartButton);
-
-		    	            // Creating scene
-		    	            Scene scene = new Scene(layout, 1280, 720);
-
-		    	        	primaryStage.setScene(scene);
-		    			}
-		    		});
-		        }
-			}
-		};
-		timer.start();
-	}
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
